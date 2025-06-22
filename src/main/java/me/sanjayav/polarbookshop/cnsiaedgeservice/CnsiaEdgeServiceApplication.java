@@ -1,4 +1,4 @@
-package me.sanjayav.polarbookshop.orderservice.cnsiaedgeservice;
+package me.sanjayav.polarbookshop.cnsiaedgeservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

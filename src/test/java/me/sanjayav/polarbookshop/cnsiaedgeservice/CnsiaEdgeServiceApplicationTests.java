@@ -1,4 +1,4 @@
-package me.sanjayav.polarbookshop.orderservice.cnsiaedgeservice;
+package me.sanjayav.polarbookshop.cnsiaedgeservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
