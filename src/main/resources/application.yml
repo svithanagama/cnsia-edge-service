@@ -59,12 +59,17 @@ spring:
               replenishRate: 10
               burstCapacity: 20
               requestTokens: 1
+        - name: SaveSession
   data:
     redis:
       connect-timeout: 2s
       host: localhost
       port: 6379
       timeout: 1s
+  session:
+    timeout: 10m
+    redis:
+      namespace: polar-edge
 resilience4j:
   circuitbreaker:
     configs:
