@@ -9,9 +9,14 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.web.server.WebFilter;
+import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -41,6 +46,12 @@ public class SecurityConfig {
         .oauth2Login(Customizer.withDefaults())
         .logout(logout -> logout.logoutSuccessHandler(
             oidcLogoutSuccessHandler(clientRegistrationRepository)))
+        // Angular wants a cookie-based CSRF token (not a header based one)
+        // https://docs.spring.io/spring-security/reference/reactive/exploits/csrf.html#webflux-csrf-configure-custom-repository
+        .csrf(csrf -> csrf
+          .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+          .csrfTokenRequestHandler(new ServerCsrfTokenRequestAttributeHandler())
+        )
         .build();
   }
 
@@ -50,5 +61,13 @@ public class SecurityConfig {
     var oidcLogoutSuccessHandler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
     oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}");
     return oidcLogoutSuccessHandler;
+  }
+
+  @Bean
+  WebFilter csrfCookieWebFilter() {
+    return (exchange, chain) -> {
+      exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty()).subscribe();
+      return chain.filter(exchange);
+    };
   }
 }
